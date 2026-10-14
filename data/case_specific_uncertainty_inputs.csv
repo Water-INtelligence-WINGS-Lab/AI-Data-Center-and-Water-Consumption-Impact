@@ -1,0 +1,5 @@
+scenario_id,site_name,state,calculation_branch,varied_parameter,range_low,range_high,range_basis
+mayes_fy2024_nominal_k_default_pf,Mayes County,OK,average_flow,PF,2.0,4.0,Deterministic municipal peaking-factor range used for the case-specific uncertainty check
+botetourt_peak_reservation_24_mgd_k,Botetourt County,VA,direct_peak,r,0.70,0.90,Deterministic consumptive-ratio range cited for the case-specific uncertainty check
+midlothian_fy2024_nominal_k_default_pf,Midlothian,TX,average_flow,PF,2.0,4.0,Deterministic municipal peaking-factor range used for the case-specific uncertainty check
+henderson_fy2024_regional_gross_capacity,Henderson,NV,average_flow,PF,2.0,4.0,Deterministic municipal peaking-factor range used for the case-specific uncertainty check
