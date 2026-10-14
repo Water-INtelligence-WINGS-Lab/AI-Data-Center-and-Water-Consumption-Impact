@@ -23,6 +23,7 @@ DATA_DIR = REPO_ROOT / "data"
 OUT_DIR = REPO_ROOT / "results"
 INPUT_CSV = DATA_DIR / "wci_input_provenance.csv"
 SOURCE_CORPUS_CSV = DATA_DIR / "source_corpus_classification.csv"
+CASE_UNCERTAINTY_CSV = DATA_DIR / "case_specific_uncertainty_inputs.csv"
 
 MGD_TO_ML_D = 3.785411784
 FIXED_SEED = 20260813
@@ -787,6 +788,138 @@ def build_rank_admissibility(results: list[dict[str, Any]]) -> list[dict[str, An
     return output
 
 
+def build_case_specific_uncertainty(
+    uncertainty_inputs: list[dict[str, str]],
+    results_by_id: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Calculate the deterministic parameter-range envelopes reported in Table S11.
+
+    The uncertainty input file specifies only the varied parameter and its tested
+    range. All central case data are taken from the audited comparison scenarios,
+    preventing a second copy of the manuscript inputs from drifting out of sync.
+    """
+    expected_ids = [
+        "mayes_fy2024_nominal_k_default_pf",
+        "botetourt_peak_reservation_24_mgd_k",
+        "midlothian_fy2024_nominal_k_default_pf",
+        "henderson_fy2024_regional_gross_capacity",
+    ]
+    observed_ids = [row.get("scenario_id", "") for row in uncertainty_inputs]
+    if observed_ids != expected_ids:
+        raise ValueError(
+            "Case-specific uncertainty inputs must contain the four declared "
+            "scenarios in manuscript order"
+        )
+
+    output: list[dict[str, Any]] = []
+    for input_row in uncertainty_inputs:
+        scenario_id = input_row["scenario_id"]
+        if scenario_id not in results_by_id:
+            raise ValueError(f"Unknown uncertainty scenario: {scenario_id}")
+        anchor = results_by_id[scenario_id]
+        low_parameter = float(input_row["range_low"])
+        high_parameter = float(input_row["range_high"])
+        branch = input_row["calculation_branch"]
+        varied_parameter = input_row["varied_parameter"]
+        capacity = anchor["K_MGD"]
+        if capacity is None or capacity <= 0 or low_parameter > high_parameter:
+            raise ValueError(f"Invalid uncertainty inputs for {scenario_id}")
+
+        if branch == "average_flow" and varied_parameter == "PF":
+            average_withdrawal = anchor["W_avg_MGD"]
+            consumptive_ratio = anchor["r_used"]
+            central_parameter = anchor["PF_W"]
+            if (
+                average_withdrawal is None
+                or consumptive_ratio is None
+                or central_parameter is None
+                or anchor["PF_C"] != central_parameter
+                or low_parameter < 1
+            ):
+                raise ValueError(f"Incomplete average-flow uncertainty case: {scenario_id}")
+
+            def calculate(parameter: float) -> tuple[float, float]:
+                peak_withdrawal = average_withdrawal * parameter
+                return (
+                    100.0 * peak_withdrawal * consumptive_ratio / capacity,
+                    100.0 * peak_withdrawal / capacity,
+                )
+
+        elif branch == "direct_peak" and varied_parameter == "r":
+            peak_withdrawal = anchor["W_peak_MGD"]
+            central_parameter = anchor["r_used"]
+            if (
+                peak_withdrawal is None
+                or central_parameter is None
+                or not 0 <= low_parameter <= high_parameter <= 1
+                or anchor["PF_W"] is not None
+                or anchor["PF_C"] is not None
+            ):
+                raise ValueError(f"Invalid direct-peak uncertainty case: {scenario_id}")
+
+            def calculate(parameter: float) -> tuple[float, float]:
+                return (
+                    100.0 * peak_withdrawal * parameter / capacity,
+                    100.0 * peak_withdrawal / capacity,
+                )
+
+        else:
+            raise ValueError(
+                f"Unsupported uncertainty branch/parameter for {scenario_id}: "
+                f"{branch}/{varied_parameter}"
+            )
+
+        if not low_parameter <= central_parameter <= high_parameter:
+            raise ValueError(f"Central parameter lies outside the tested range for {scenario_id}")
+        wci_low_raw, pdlr_low_raw = calculate(low_parameter)
+        wci_central, pdlr_central = calculate(central_parameter)
+        wci_high_raw, pdlr_high_raw = calculate(high_parameter)
+        if not math.isclose(wci_central, anchor["WCI_pct"], rel_tol=0, abs_tol=1e-9):
+            raise ValueError(f"Central WCI does not reproduce the anchor for {scenario_id}")
+        if not math.isclose(pdlr_central, anchor["PDLR_pct"], rel_tol=0, abs_tol=1e-9):
+            raise ValueError(f"Central PDLR does not reproduce the anchor for {scenario_id}")
+
+        output.append(
+            {
+                "site_id": anchor["site_id"],
+                "site_name": anchor["site_name"],
+                "state": anchor["state"],
+                "scenario_id": scenario_id,
+                "calculation_branch": branch,
+                "varied_parameter": varied_parameter,
+                "range_low": low_parameter,
+                "central_parameter": central_parameter,
+                "range_high": high_parameter,
+                "wci_low_pct": min(wci_low_raw, wci_high_raw),
+                "wci_central_pct": wci_central,
+                "wci_high_pct": max(wci_low_raw, wci_high_raw),
+                "pdlr_low_pct": min(pdlr_low_raw, pdlr_high_raw),
+                "pdlr_central_pct": pdlr_central,
+                "pdlr_high_pct": max(pdlr_low_raw, pdlr_high_raw),
+                "range_basis": input_row["range_basis"],
+            }
+        )
+
+    for index, row in enumerate(output):
+        row["central_numerical_position"] = index + 1
+        row["continuous_order_stable"] = True
+        if index == len(output) - 1:
+            row["wci_minimum_gap_to_next_pct_points"] = None
+            row["pdlr_minimum_gap_to_next_pct_points"] = None
+            continue
+        next_row = output[index + 1]
+        wci_gap = row["wci_low_pct"] - next_row["wci_high_pct"]
+        pdlr_gap = row["pdlr_low_pct"] - next_row["pdlr_high_pct"]
+        if wci_gap <= 0 or pdlr_gap <= 0:
+            raise ValueError(
+                f"Uncertainty envelopes overlap or reverse between {row['site_name']} "
+                f"and {next_row['site_name']}"
+            )
+        row["wci_minimum_gap_to_next_pct_points"] = wci_gap
+        row["pdlr_minimum_gap_to_next_pct_points"] = pdlr_gap
+    return output
+
+
 def build_validation_tests(
     provenance_rows: list[dict[str, str]],
     source_corpus_rows: list[dict[str, str]],
@@ -794,6 +927,7 @@ def build_validation_tests(
     analytic_rows: list[dict[str, Any]],
     synthetic_rows: list[dict[str, Any]],
     douglas_bound_rows: list[dict[str, Any]],
+    case_uncertainty_rows: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
     tests: list[dict[str, Any]] = []
 
@@ -991,6 +1125,25 @@ def build_validation_tests(
         synthetic_pass,
         f"{len(synthetic_rows)} cases",
     )
+    uncertainty_order = [row["site_name"] for row in case_uncertainty_rows]
+    minimum_wci_gap = min(
+        row["wci_minimum_gap_to_next_pct_points"]
+        for row in case_uncertainty_rows
+        if row["wci_minimum_gap_to_next_pct_points"] is not None
+    )
+    uncertainty_ok = (
+        uncertainty_order == ["Mayes County", "Botetourt County", "Midlothian", "Henderson"]
+        and all(row["continuous_order_stable"] for row in case_uncertainty_rows)
+        and math.isclose(minimum_wci_gap, 0.299028536734, rel_tol=0, abs_tol=1e-9)
+        and math.isclose(case_uncertainty_rows[1]["pdlr_low_pct"], 8.333333333333, rel_tol=0, abs_tol=1e-9)
+        and math.isclose(case_uncertainty_rows[1]["pdlr_high_pct"], 8.333333333333, rel_tol=0, abs_tol=1e-9)
+    )
+    record(
+        "case_specific_uncertainty_order",
+        "The four case-specific deterministic envelopes reproduce Table S11 and preserve the stated numerical order",
+        uncertainty_ok,
+        f"order={' > '.join(uncertainty_order)}; minimum WCI gap={minimum_wci_gap:.12g} percentage points",
+    )
     return tests
 
 
@@ -998,6 +1151,7 @@ def main() -> int:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     provenance_rows = read_csv(INPUT_CSV)
     source_corpus_rows = read_csv(SOURCE_CORPUS_CSV)
+    uncertainty_inputs = read_csv(CASE_UNCERTAINTY_CSV)
     grouped = validate_and_group(provenance_rows)
     results = [calculate_scenario(rows) for rows in grouped.values()]
     results_by_id = {row["scenario_id"]: row for row in results}
@@ -1006,9 +1160,10 @@ def main() -> int:
     synthetic_rows = build_synthetic_boundary_tests()
     rank_rows = build_rank_admissibility(results)
     douglas_bound_rows = build_douglas_allocation_bound(grouped)
+    case_uncertainty_rows = build_case_specific_uncertainty(uncertainty_inputs, results_by_id)
     validation_rows = build_validation_tests(
         provenance_rows, source_corpus_rows, results_by_id, analytic_sensitivity, synthetic_rows,
-        douglas_bound_rows,
+        douglas_bound_rows, case_uncertainty_rows,
     )
 
     result_fields = [
@@ -1067,6 +1222,21 @@ def main() -> int:
     ]
     write_csv(OUT_DIR / "douglas_reclaimed_allocation_bound.csv", douglas_bound_fields, douglas_bound_rows)
 
+    case_uncertainty_fields = [
+        "site_id", "site_name", "state", "scenario_id", "calculation_branch",
+        "varied_parameter", "range_low", "central_parameter", "range_high",
+        "wci_low_pct", "wci_central_pct", "wci_high_pct",
+        "pdlr_low_pct", "pdlr_central_pct", "pdlr_high_pct",
+        "central_numerical_position", "continuous_order_stable",
+        "wci_minimum_gap_to_next_pct_points", "pdlr_minimum_gap_to_next_pct_points",
+        "range_basis",
+    ]
+    write_csv(
+        OUT_DIR / "wci_pdlr_case_specific_uncertainty.csv",
+        case_uncertainty_fields,
+        case_uncertainty_rows,
+    )
+
     validation_fields = ["test_id", "test_description", "test_status", "observed"]
     write_csv(OUT_DIR / "wci_validation_tests.csv", validation_fields, validation_rows)
 
@@ -1079,6 +1249,7 @@ def main() -> int:
         {"key": "mgd_to_ml_per_day", "value": MGD_TO_ML_D},
         {"key": "input_sha256", "value": sha256(INPUT_CSV)},
         {"key": "source_corpus_sha256", "value": sha256(SOURCE_CORPUS_CSV)},
+        {"key": "case_uncertainty_input_sha256", "value": sha256(CASE_UNCERTAINTY_CSV)},
         {"key": "script_sha256", "value": sha256(Path(__file__).resolve())},
     ]
     write_csv(OUT_DIR / "run_metadata.csv", ["key", "value"], metadata_rows)
@@ -1099,6 +1270,10 @@ def main() -> int:
     print(
         "PASS: no complete empirical low/high input envelope was generated; "
         "the Douglas source-allocation bound is reported separately and conditionally."
+    )
+    print(
+        "PASS: the four case-specific deterministic uncertainty envelopes preserve "
+        "Mayes County > Botetourt County > Midlothian > Henderson for WCI and PDLR."
     )
     return 0
 

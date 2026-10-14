@@ -18,7 +18,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
-from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = ROOT / "data"
 RESULTS_DIR = ROOT / "results"
@@ -30,6 +30,7 @@ PROVENANCE_CSV = DATA_DIR / "wci_input_provenance.csv"
 SENSITIVITY_CSV = RESULTS_DIR / "wci_pdlr_analytic_sensitivity.csv"
 SYNTHETIC_CSV = RESULTS_DIR / "wci_synthetic_boundary_tests.csv"
 COMMUNITY_CSV = DATA_DIR / "community_context_inputs.csv"
+CASE_UNCERTAINTY_CSV = RESULTS_DIR / "wci_pdlr_case_specific_uncertainty.csv"
 
 SITE_ORDER = [
     "Lebanon", "Council Bluffs", "Mayes County", "The Dalles",
@@ -537,9 +538,93 @@ def build_figure_5() -> None:
     save_figure(fig, "Figure_S1_Sensitivity_FailureModes")
 
 
+def build_figure_s2() -> None:
+    """Build the four-case deterministic parameter-range uncertainty figure."""
+    results = read_csv(CASE_UNCERTAINTY_CSV)
+    expected_order = ["Mayes County", "Botetourt County", "Midlothian", "Henderson"]
+    if [row["site_name"] for row in results] != expected_order:
+        raise ValueError("Figure S2 input does not match the declared four-case order")
+
+    charcoal = "#333333"
+    grid_grey = "#E1E1E1"
+
+    def plot_metric(ax, prefix: str, color: str, xlabel: str, panel: str) -> None:
+        y = np.arange(len(results))
+        low = np.array([float(row[f"{prefix}_low_pct"]) for row in results])
+        central = np.array([float(row[f"{prefix}_central_pct"]) for row in results])
+        high = np.array([float(row[f"{prefix}_high_pct"]) for row in results])
+        ax.errorbar(
+            central,
+            y,
+            xerr=np.vstack([central - low, high - central]),
+            fmt="o",
+            color=color,
+            ecolor=color,
+            markerfacecolor=color,
+            markeredgecolor=charcoal,
+            markeredgewidth=0.7,
+            markersize=6.8,
+            elinewidth=2.2,
+            capsize=5.0,
+            capthick=1.4,
+            zorder=3,
+        )
+        maximum = float(high.max())
+        ax.set_xlim(0, maximum * 1.17)
+        ax.set_ylim(len(results) - 0.45, -0.55)
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=6, steps=[1, 2, 2.5, 5, 10]))
+        ax.grid(axis="x", color=grid_grey, linewidth=0.8, zorder=0)
+        ax.spines["top"].set_visible(False)
+        ax.spines["right"].set_visible(False)
+        ax.tick_params(axis="both", width=1.0, length=4)
+        ax.set_xlabel(xlabel, fontweight="bold")
+        ax.text(-0.08, 1.04, panel, transform=ax.transAxes, fontsize=15,
+                fontweight="bold", ha="left", va="bottom")
+        for index, (low_value, high_value) in enumerate(zip(low, high)):
+            if math.isclose(low_value, high_value, abs_tol=1e-12):
+                range_label = f"{low_value:.2f} (fixed)"
+            else:
+                range_label = f"{low_value:.2f}-{high_value:.2f}"
+            ax.text(high_value + maximum * 0.025, index, range_label,
+                    fontsize=8.7, ha="left", va="center", color=charcoal)
+
+    figure_style = {
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans"],
+        "font.size": 10.5,
+        "axes.labelsize": 11.5,
+        "xtick.labelsize": 9.5,
+        "ytick.labelsize": 10.5,
+        "axes.linewidth": 1.0,
+        "pdf.fonttype": 42,
+        "ps.fonttype": 42,
+        "savefig.facecolor": "white",
+    }
+    with mpl.rc_context(figure_style):
+        labels = [f"{row['site_name']}, {row['state']}" for row in results]
+        fig, axes = plt.subplots(1, 2, figsize=(11.2, 4.5), sharey=True)
+        plot_metric(axes[0], "wci", "#007C91", "WCI (% of declared capacity)", "(a)")
+        plot_metric(axes[1], "pdlr", "#F28E2B", "PDLR (% of declared capacity)", "(b)")
+        axes[0].set_yticks(np.arange(len(results)), labels)
+        axes[1].tick_params(axis="y", left=False, labelleft=False)
+        fig.legend(
+            handles=[
+                Line2D([0], [0], color=charcoal, linewidth=2.2, marker="o",
+                       markerfacecolor=charcoal, markersize=6,
+                       label="Tested range and central value"),
+            ],
+            loc="lower center",
+            frameon=False,
+            bbox_to_anchor=(0.5, 0.0),
+            fontsize=9.5,
+        )
+        fig.subplots_adjust(left=0.18, right=0.985, top=0.92, bottom=0.20, wspace=0.22)
+        save_figure(fig, "Figure_S2_Uncertainty_Check")
+
+
 def write_manifest() -> None:
     inputs = [ANCHORS_CSV, SCENARIOS_CSV, EVIDENCE_CSV, PROVENANCE_CSV, SENSITIVITY_CSV,
-              SYNTHETIC_CSV, COMMUNITY_CSV]
+              SYNTHETIC_CSV, COMMUNITY_CSV, CASE_UNCERTAINTY_CSV]
     outputs = sorted(
         path
         for path in [*FIGURES_DIR.glob("*.pdf"), *FIGURES_DIR.glob("*.jpg")]
@@ -595,8 +680,8 @@ def validate_inputs_and_outputs() -> None:
     pdf_paths = sorted(
         path for path in FIGURES_DIR.glob("*.pdf") if not path.name.startswith("._")
     )
-    if len(pdf_paths) != 3:
-        raise ValueError("Expected exactly three publication PDF outputs")
+    if len(pdf_paths) != 4:
+        raise ValueError("Expected exactly four publication PDF outputs")
     for path in pdf_paths:
         if path.stat().st_size == 0 or path.read_bytes()[:4] != b"%PDF":
             raise ValueError(f"{path.name} is not a valid non-empty PDF")
@@ -611,17 +696,18 @@ def main() -> None:
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     configure_style()
     required = [ANCHORS_CSV, SCENARIOS_CSV, EVIDENCE_CSV, PROVENANCE_CSV, SENSITIVITY_CSV,
-                SYNTHETIC_CSV, COMMUNITY_CSV]
+                SYNTHETIC_CSV, COMMUNITY_CSV, CASE_UNCERTAINTY_CSV]
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise FileNotFoundError("Missing audited figure input(s): " + ", ".join(missing))
     build_figure_3()
     build_figure_4()
     build_figure_5()
+    build_figure_s2()
     write_manifest()
     write_layout_audit()
     validate_inputs_and_outputs()
-    print("PASS: generated Figures 3--4 and Supplementary Figure S1 as vector PDFs.")
+    print("PASS: generated Figures 3--4 and Supplementary Figures S1--S2 as vector PDFs.")
 
 
 if __name__ == "__main__":
