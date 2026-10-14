@@ -18,3 +18,4 @@ source_corpus_table_s4_totals,The machine-readable pathway-by-evidence-tier matr
 wisconsin_corrected_denominator,Wisconsin uses 40 MGD only as a conditional 2021-context system-capacity scenario,PASS,K=40.0 MGD; status=conditional_confirmation_pending
 analytic_sensitivity_execution,"The complete WCI and PDLR one-at-a-time sensitivity design contains 48 checks at 10, 25, and 50 percent",PASS,48 checks
 synthetic_test_execution,All synthetic boundary and false-data cases behaved as designed,PASS,23 cases
+case_specific_uncertainty_order,The four case-specific deterministic envelopes reproduce Table S11 and preserve the stated numerical order,PASS,order=Mayes County > Botetourt County > Midlothian > Henderson; minimum WCI gap=0.299028536733 percentage points
