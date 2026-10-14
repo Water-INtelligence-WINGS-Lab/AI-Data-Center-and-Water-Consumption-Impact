@@ -38,10 +38,15 @@ The ten comparison rows do not share one evidence class or one denominator type.
 No case has a complete verified set of low and high inputs. The Douglas source
 totals permit a narrower deterministic source-allocation bound for reclaimed
 `r`, but it holds PF and K fixed and is not a full uncertainty interval.
-Consequently:
+The separate four-case uncertainty check therefore uses explicitly stated
+deterministic parameter ranges: PF from 2.0 to 4.0 for Mayes County,
+Midlothian, and Henderson, and `r` from 0.70 to 0.90 for Botetourt County.
+All other case inputs and declared boundaries are held fixed. Consequently:
 
 - no empirical confidence interval is reported;
 - no definitive cross-site ranking is claimed;
+- the preserved four-case numerical order applies only within the tested
+  ranges and stated boundaries;
 - no site-specific threshold-crossing forecast is reported;
 - WCI or PDLR unity is not interpreted as utility failure; and
 - the one-at-a-time and synthetic tests diagnose construct behaviour rather

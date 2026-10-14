@@ -53,6 +53,15 @@ inclusion basis, and the source URL when available. Automated validation checks
 the 103 unique keys and reproduces every pathway-by-evidence-tier cell in
 Supplementary Table S4.
 
+### `data/case_specific_uncertainty_inputs.csv`
+
+Declares the four case scenarios included in the deterministic parameter-range
+uncertainty check. Each row records the audited scenario identifier, calculation
+branch, varied parameter, tested endpoints, and range basis. PF is varied from
+2.0 to 4.0 for the three average-flow cases; `r` is varied from 0.70 to 0.90
+for the direct-peak Botetourt case. Central withdrawal, `r`, PF, and `K` values
+are not duplicated here; they are read from the primary scenario results.
+
 ## Main result files
 
 ### `results/wci_pdlr_scenario_results.csv`
@@ -89,6 +98,14 @@ and boundary conditions.
 
 Contains exact one-at-a-time algebraic response multipliers and elasticities
 for WCI and PDLR. Perturbations are diagnostic and not empirical input ranges.
+
+### `results/wci_pdlr_case_specific_uncertainty.csv`
+
+Contains the exact WCI and PDLR endpoint and central values for the four-case
+parameter-range check. It also records the numerical position of each case,
+whether the continuous order is preserved, and the minimum WCI and PDLR
+separation from the next case. These deterministic ranges reproduce Table S11
+and Figure S2; they are not confidence intervals or probability distributions.
 
 ### `results/wci_synthetic_boundary_tests.csv`
 
