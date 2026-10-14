@@ -69,6 +69,16 @@ The application audit contains ten US cases. All ten primary comparison anchors 
 
 PF dependence is reported explicitly for the two reconstructed average-flow cases: Council Bluffs has `WCI(%) = 9.2004 × PF` and `PDLR(%) = 12.8443 × PF`, while The Dalles has `WCI(%) = 11.3498 × PF` and `PDLR(%) = 14.4809 × PF`.
 
+A case-specific deterministic uncertainty check evaluates the four comparison
+cases identified for closer examination. PF is varied from `2.0` to `4.0` for
+Mayes County, Midlothian, and Henderson, while `r` is varied from `0.70` to
+`0.90` for Botetourt County. Botetourt's directly reported 2 MGD maximum is
+not multiplied by an additional PF. The numerical order remains Mayes County
+`>` Botetourt County `>` Midlothian `>` Henderson for both WCI and PDLR over
+the tested ranges; the smallest WCI separation is `0.299` percentage points.
+These deterministic envelopes are not probability distributions, confidence
+intervals, or hydrological-risk rankings.
+
 The community-context calculation has a separate gate. Six cases have a
 defensible FY2024 average-consumption value; four planned or service-maximum
 records do not. Figure 3a and Figure 4a include all ten primary WCI/PDLR cases. Figures 3b and 4b retain only the six cases eligible for the independent community-context calculation.
@@ -102,8 +112,8 @@ Python standard library.
 Clone the repository and enter its root directory:
 
 ```bash
-git clone https://github.com/BasitAkin/Water-Consumption-Impact_WCI-and-Peak-Delivery-Load-Ratio_PDLR.git
-cd Water-Consumption-Impact_WCI-and-Peak-Delivery-Load-Ratio_PDLR
+git clone https://github.com/Water-INtelligence-WINGS-Lab/AI-Data-Center-and-Water-Consumption-Impact.git
+cd AI-Data-Center-and-Water-Consumption-Impact
 ```
 
 Then run:
@@ -117,11 +127,13 @@ A successful run writes the result tables to `results/` and reports that:
 - 14 audited scenarios were calculated;
 - the ten-case comparison retains ten conditional numerical WCI/PDLR anchors;
 - 48 one-at-a-time sensitivity checks were completed;
-- 23 synthetic boundary and failure-mode cases passed; and
+- 23 synthetic boundary and failure-mode cases passed;
 - no complete unsupported empirical low or high envelope was generated;
 - the Douglas source-allocation bound and both PF-dependence equations were reproduced;
+- four case-specific deterministic uncertainty envelopes were reproduced and
+  their continuous numerical order was verified;
 - the 103-source row-level corpus reproduced every Supplementary Table S4 total; and
-- all 19 automated validation checks passed.
+- all 20 automated validation checks passed.
 
 ## Reproduce the figures
 
@@ -135,8 +147,9 @@ python analysis/build_figures.py
 This creates:
 
 - `figures/Figure_3ab_WCI.pdf`;
-- `figures/Figure_4ab_Decomposition.pdf`; and
-- `figures/Figure_S1_Sensitivity_FailureModes.pdf`.
+- `figures/Figure_4ab_Decomposition.pdf`;
+- `figures/Figure_S1_Sensitivity_FailureModes.pdf`; and
+- `figures/Figure_S2_Uncertainty_Check.pdf`.
 
 The plotting script checks the ten numerical primary WCI/PDLR anchors, six community-context-eligible cases, direct-peak calculation routes, PDF/JPG validity, and text-layout intersections.
 
@@ -147,6 +160,9 @@ The plotting script checks the ten numerical primary WCI/PDLR anchors, six commu
   water pathway, capacity convention, and boundary decision.
 - `data/community_context_inputs.csv` contains the independently labelled
   jurisdictional comparison inputs used in the contextual figure panels.
+- `data/case_specific_uncertainty_inputs.csv` declares the four scenarios,
+  varied parameter, and deterministic parameter ranges used for Table S11 and
+  Figure S2. Central case inputs are read from the audited comparison results.
 - `data/source_corpus_classification.csv` contains one row for each of the 103
   review sources, including its citation key, primary pathway, evidence tier,
   source type, contribution, cross-pathway role, inclusion basis, and source URL
@@ -158,6 +174,9 @@ The plotting script checks the ten numerical primary WCI/PDLR anchors, six commu
   reclaimed-stream allocation bound conditional on fixed PF and K.
 - `results/wci_pdlr_analytic_sensitivity.csv` contains the 48 exact algebraic
   one-at-a-time checks at +/-10%, +/-25%, and +/-50%.
+- `results/wci_pdlr_case_specific_uncertainty.csv` contains the exact endpoint
+  and central WCI/PDLR values, numerical positions, order-stability result, and
+  minimum separation between adjacent cases used in Table S11 and Figure S2.
 - `results/wci_synthetic_boundary_tests.csv` contains the 23 constructed
   boundary, invalid-input, and failure-mode cases.
 - `results/wci_validation_tests.csv` records automated reproducibility checks.
@@ -183,8 +202,10 @@ No complete source-backed low/high input set was available for any of the ten
 comparison cases. Douglas County is the one partial exception: the reported
 source totals provide a deterministic allocation bound for reclaimed `r`, but
 PF and K remain fixed and the result is not a joint uncertainty interval. The
-sensitivity and synthetic outputs are therefore diagnostic tests, not empirical
-confidence intervals, site forecasts, or definitive rank-stability estimates.
+separate four-case uncertainty check evaluates explicitly stated parameter
+ranges rather than source-derived probability distributions. The uncertainty,
+sensitivity, and synthetic outputs are therefore not empirical confidence
+intervals or site forecasts.
 
 ## Sensitivity and failure-mode assessment
 
@@ -199,6 +220,9 @@ testing:
 - **Synthetic failure-mode tests** cover unit and scale invariance, missing or
   invalid inputs, zero direct consumption, extreme peaking, available
   headroom, campus aggregation, growth decoupling, and rank reversal.
+- **Case-specific parameter-range checks** evaluate PF from `2.0` to `4.0` for
+  Mayes County, Midlothian, and Henderson and `r` from `0.70` to `0.90` for
+  Botetourt County, with all other case inputs held fixed.
 
 These tests diagnose construct behaviour and potential misuse. They are not
 site observations, empirical uncertainty intervals, operational thresholds,
@@ -219,7 +243,9 @@ The committed analysis passes checks covering:
 - complete sensitivity-design execution; and
 - successful execution of all synthetic tests;
 - exact Douglas allocation-bound reconstruction;
-- exact Council Bluffs and The Dalles PF coefficients; and
+- exact Council Bluffs and The Dalles PF coefficients;
+- exact reproduction and continuous-order validation of the four case-specific
+  uncertainty envelopes; and
 - 103 unique source-corpus keys with the Table S4 pathway-by-tier matrix.
 
 The GitHub Actions workflow in `.github/workflows/validate.yml` reruns the
@@ -260,8 +286,8 @@ citation.
 Suggested software citation:
 
 > Akinade, B. A., Amanambu, A. C., Frame, J. M., & Ren, S. (2026). *WCI and
-> PDLR Reproducibility Package* (Version 1.1.0) [Software]. GitHub.
-> https://github.com/BasitAkin/Water-Consumption-Impact_WCI-and-Peak-Delivery-Load-Ratio_PDLR
+> PDLR Reproducibility Package* (Version 1.2.0) [Software]. GitHub.
+> https://github.com/Water-INtelligence-WINGS-Lab/AI-Data-Center-and-Water-Consumption-Impact
 
 Please also cite the associated article when its final bibliographic
 information is available.
