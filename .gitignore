@@ -9,4 +9,5 @@ venv/
 Thumbs.db
 *.xlsx
 *.xls
+!WCI_10Site_Workbook_v7_0.xlsx
 tmp/

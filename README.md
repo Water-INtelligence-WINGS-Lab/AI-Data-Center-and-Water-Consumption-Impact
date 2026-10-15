@@ -99,6 +99,7 @@ data/      Audited model inputs, provenance, and community-context inputs
 docs/      Data dictionary and evidence/boundary documentation
 results/   Generated tables, validation checks, and file manifests
 figures/   Generated vector figures used in the manuscript and supplement
+WCI_10Site_Workbook_v7_0.xlsx  Formula-driven workbook for the current model
 ```
 
 The repository intentionally excludes internal working notes, superseded
@@ -155,6 +156,11 @@ The plotting script checks the ten numerical primary WCI/PDLR anchors, six commu
 
 ## Principal data and results
 
+- `WCI_10Site_Workbook_v7_0.xlsx` provides a formula-driven Excel version of
+  the current ten-site calculations, evidence ledger, community-context
+  results, scenario and uncertainty checks, figure data, and validation
+  outputs. Runtime provenance and file hashes are maintained separately in
+  `results/run_metadata.csv` rather than displayed in the workbook.
 - `data/wci_input_provenance.csv` is the authoritative input ledger. Each row
   records one scenario parameter, its evidence class, source, time basis,
   water pathway, capacity convention, and boundary decision.
