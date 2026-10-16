@@ -12,6 +12,38 @@
 
 The conversion used throughout is `1 MGD = 3.785411784 ML/d`.
 
+## Excel workbook
+
+`WCI_10Site_Workbook_v7_0.xlsx` is the formula-driven Excel representation of
+the current ten-site model. It is provided for transparent review, calculation
+tracing, and controlled exploration of the declared inputs and parameter
+ranges. The repository CSV files remain the authoritative machine-readable
+inputs and results.
+
+| Worksheet | Contents |
+|---|---|
+| `0. Overview & Methods` | Scope, metric definitions, evidence codes, units, calculation branches, interpretation limits, and workbook version information |
+| `1. Inputs & Evidence` | Site and scenario inputs with evidence, source, time-basis, water-pathway, capacity, and boundary information |
+| `2. WCI & PDLR` | Formula-driven peak-demand, WCI, and PDLR calculations for the primary comparison cases |
+| `3. Community Context` | Formula-driven household-equivalence and residential-use comparisons for cases that pass the separate context-data gate |
+| `4. Scenarios & Uncertainty` | Declared alternative-boundary scenarios and the four-case deterministic parameter-range uncertainty check |
+| `5. Summary` | Compact presentation of the current comparison results and principal interpretation fields |
+| `6. Figure Data` | Formula-linked data used to reproduce the manuscript and Supplementary Information figures |
+| `7. Validation & Sensitivity` | Validation checks, one-at-a-time sensitivity results, and supporting diagnostic calculations |
+
+Source and parameter values are concentrated in `1. Inputs & Evidence`, with
+the explicitly declared scenario and uncertainty ranges in
+`4. Scenarios & Uncertainty`. Calculated cells in the remaining analytical
+worksheets contain formulas and should not be replaced with static values.
+After changing an input, open the file in a spreadsheet application that
+supports Excel formulas and recalculate the workbook before interpreting or
+exporting updated results.
+
+Blank numerical cells mean unavailable, ineligible, or not calculated; they
+do not represent zero. Runtime provenance, conversion constants, and input and
+script hashes are maintained in `results/run_metadata.csv` rather than in the
+reader-facing workbook.
+
 ## Input files
 
 ### `data/wci_input_provenance.csv`
