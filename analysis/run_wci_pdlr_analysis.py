@@ -1073,25 +1073,26 @@ def build_validation_tests(
     )
     corpus_counts = Counter((row["primary_pathway"], row["evidence_tier"]) for row in source_corpus_rows)
     expected_corpus_counts = {
-        ("Burden", "Peer-reviewed/scholarly"): 26,
-        ("Burden", "Government/regulatory"): 4,
-        ("Burden", "Corporate/industry/institutional"): 7,
-        ("Constraint", "Peer-reviewed/scholarly"): 3,
-        ("Constraint", "Government/regulatory"): 7,
-        ("Constraint", "Corporate/industry/institutional"): 11,
-        ("Constraint", "Investigative/trade"): 10,
-        ("Adaptive", "Peer-reviewed/scholarly"): 20,
-        ("Adaptive", "Government/regulatory"): 1,
-        ("Adaptive", "Corporate/industry/institutional"): 1,
-        ("Adaptive", "Investigative/trade"): 1,
-        ("Cross-cutting", "Government/regulatory"): 2,
-        ("Cross-cutting", "Corporate/industry/institutional"): 10,
+        ("Burden", "Peer-reviewed"): 23,
+        ("Burden", "Research preprints"): 3,
+        ("Burden", "Government/utility"): 5,
+        ("Burden", "Corporate/institutional"): 7,
+        ("Constraint", "Peer-reviewed"): 2,
+        ("Constraint", "Government/utility"): 7,
+        ("Constraint", "Corporate/institutional"): 12,
+        ("Constraint", "Journalism/trade"): 10,
+        ("Adaptive", "Peer-reviewed"): 20,
+        ("Adaptive", "Government/utility"): 1,
+        ("Adaptive", "Corporate/institutional"): 1,
+        ("Adaptive", "Journalism/trade"): 1,
+        ("Cross-cutting", "Government/utility"): 2,
+        ("Cross-cutting", "Corporate/institutional"): 10,
     }
     citation_keys = [row["citation_key"] for row in source_corpus_rows]
     record(
         "source_corpus_coverage",
-        "The machine-readable source corpus contains 103 uniquely keyed records",
-        len(source_corpus_rows) == 103 and len(set(citation_keys)) == 103 and all(citation_keys),
+        "The machine-readable source corpus contains 104 uniquely keyed records",
+        len(source_corpus_rows) == 104 and len(set(citation_keys)) == 104 and all(citation_keys),
         f"rows={len(source_corpus_rows)}; unique_keys={len(set(citation_keys))}",
     )
     record(
