@@ -57,7 +57,7 @@ and boundary notes are retained in `data/wci_input_provenance.csv`. External
 source documents are cited in the manuscript and Supplementary Information and
 are not redistributed in this repository.
 
-The 103-source review classification is retained separately in
+The 104-source review classification is retained separately in
 `data/source_corpus_classification.csv`, and automated checks reproduce the
 pathway and evidence-tier totals in Supplementary Table S4.
 

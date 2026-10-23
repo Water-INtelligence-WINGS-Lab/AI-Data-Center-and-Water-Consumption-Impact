@@ -78,11 +78,11 @@ county population is not assumed to be the matching utility-service population.
 
 ### `data/source_corpus_classification.csv`
 
-Contains one row for each of the 103 sources in Supplementary Table S3. Fields
+Contains one row for each of the 104 sources in Supplementary Table S3. Fields
 record corpus order, unique citation key and label, primary contribution,
 primary pathway, evidence tier, detailed source type, cross-pathway role,
 inclusion basis, and the source URL when available. Automated validation checks
-the 103 unique keys and reproduces every pathway-by-evidence-tier cell in
+the 104 unique keys and reproduces every pathway-by-evidence-tier cell in
 Supplementary Table S4.
 
 ### `data/case_specific_uncertainty_inputs.csv`
