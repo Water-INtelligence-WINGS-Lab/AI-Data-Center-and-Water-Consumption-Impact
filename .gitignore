@@ -7,6 +7,7 @@ venv/
 .vscode/
 .DS_Store
 Thumbs.db
+.Rhistory
 *.xlsx
 *.xls
 !WCI_10Site_Workbook_v7_0.xlsx

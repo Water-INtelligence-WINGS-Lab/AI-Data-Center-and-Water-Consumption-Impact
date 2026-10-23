@@ -1,4 +1,4 @@
-# AI Data Centres and the Water Use Feedback Loop
+# When the Cloud Comes to Town: AI Data-Centre Water Demand and Utility Capacity
 
 ## WCI and PDLR reproducibility package
 
@@ -7,8 +7,8 @@
 **Correspondence:** Amobichukwu C. Amanambu, Water INtelligence and Geospatial Sensing (WINGS) Laboratory, Department of Geography and the Environment, The University of Alabama, Tuscaloosa, Alabama, USA
 
 This repository provides the data, analysis code, validation tests, and
-figure-generation workflow supporting *AI Data Centres and the Water Use
-Feedback Loop*. It is the authoritative public reproducibility package for the
+figure-generation workflow supporting *When the Cloud Comes to Town: AI
+Data-Centre Water Demand and Utility Capacity*. It is the authoritative public reproducibility package for the
 Water Consumption Impact (WCI) index and its companion Peak Delivery Load
 Ratio (PDLR).
 
@@ -81,7 +81,11 @@ intervals, or hydrological-risk rankings.
 
 The community-context calculation has a separate gate. Six cases have a
 defensible FY2024 average-consumption value; four planned or service-maximum
-records do not. Figure 3a and Figure 4a include all ten primary WCI/PDLR cases. Figures 3b and 4b retain only the six cases eligible for the independent community-context calculation.
+records do not. Repository Figures 3a and 4a include all ten primary WCI/PDLR
+cases, while repository Figures 3b and 4b plot the six cases eligible for the
+independent community-context calculation. The repository figures use a
+reproducibility-focused layout and are not intended to duplicate the article's
+typeset figure design.
 The tabular files preserve the full ten-case audit and the reason for every
 unreported result.
 
@@ -98,7 +102,7 @@ analysis/  Reproducible numerical analysis and figure-generation scripts
 data/      Audited model inputs, provenance, and community-context inputs
 docs/      Data dictionary and evidence/boundary documentation
 results/   Generated tables, validation checks, and file manifests
-figures/   Generated vector figures used in the manuscript and supplement
+figures/   Generated vector figures for the public reproducibility package
 WCI_10Site_Workbook_v7_0.xlsx  Formula-driven workbook for the current model
 ```
 
@@ -133,7 +137,7 @@ A successful run writes the result tables to `results/` and reports that:
 - the Douglas source-allocation bound and both PF-dependence equations were reproduced;
 - four case-specific deterministic uncertainty envelopes were reproduced and
   their continuous numerical order was verified;
-- the 103-source row-level corpus reproduced every Supplementary Table S4 total; and
+- the 104-source row-level corpus reproduced every Supplementary Table S4 total; and
 - all 20 automated validation checks passed.
 
 ## Reproduce the figures
@@ -152,7 +156,11 @@ This creates:
 - `figures/Figure_S1_Sensitivity_FailureModes.pdf`; and
 - `figures/Figure_S2_Uncertainty_Check.pdf`.
 
-The plotting script checks the ten numerical primary WCI/PDLR anchors, six community-context-eligible cases, direct-peak calculation routes, PDF/JPG validity, and text-layout intersections.
+The plotting script checks the ten numerical primary WCI/PDLR anchors, six
+community-context-eligible cases, direct-peak calculation routes, PDF/JPG
+validity, and text-layout intersections. Figures 3--5 may use a different
+visual structure from the article while preserving the same audited inputs,
+equations, units, and reported values.
 
 ## Principal data and results
 
@@ -169,7 +177,7 @@ The plotting script checks the ten numerical primary WCI/PDLR anchors, six commu
 - `data/case_specific_uncertainty_inputs.csv` declares the four scenarios,
   varied parameter, and deterministic parameter ranges used for Table S11 and
   Figure S2. Central case inputs are read from the audited comparison results.
-- `data/source_corpus_classification.csv` contains one row for each of the 103
+- `data/source_corpus_classification.csv` contains one row for each of the 104
   review sources, including its citation key, primary pathway, evidence tier,
   source type, contribution, cross-pathway role, inclusion basis, and source URL
   when available.
@@ -252,7 +260,7 @@ The committed analysis passes checks covering:
 - exact Council Bluffs and The Dalles PF coefficients;
 - exact reproduction and continuous-order validation of the four case-specific
   uncertainty envelopes; and
-- 103 unique source-corpus keys with the Table S4 pathway-by-tier matrix.
+- 104 unique source-corpus keys with the five-class Table S4 pathway-by-tier matrix.
 
 The GitHub Actions workflow in `.github/workflows/validate.yml` reruns the
 numerical analysis and figure workflow whenever the repository is updated.
@@ -292,7 +300,7 @@ citation.
 Suggested software citation:
 
 > Akinade, B. A., Amanambu, A. C., Frame, J. M., & Ren, S. (2026). *WCI and
-> PDLR Reproducibility Package* (Version 1.2.0) [Software]. GitHub.
+> PDLR Reproducibility Package* (Version 1.3.0) [Software]. GitHub.
 > https://github.com/Water-INtelligence-WINGS-Lab/AI-Data-Center-and-Water-Consumption-Impact
 
 Please also cite the associated article when its final bibliographic

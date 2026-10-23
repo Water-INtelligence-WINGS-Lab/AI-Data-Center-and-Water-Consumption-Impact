@@ -2,8 +2,8 @@ cff-version: 1.2.0
 message: "If you use this repository, please cite the associated manuscript and this software release."
 title: "WCI and PDLR Reproducibility Package"
 type: software
-version: 1.2.0
-date-released: 2026-10-13
+version: 1.3.0
+date-released: 2026-10-23
 authors:
   - family-names: Akinade
     given-names: "Basit A."
